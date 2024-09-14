@@ -180,11 +180,11 @@ void turn() {
     delay(800);
     moveLeft();
     delay(900);
-    if (rightIR > irThreshold) {
-      loop();
-    } else {
-      moveForward();
-    }
+//    if (rightIR > irThreshold) {
+//      loop();
+//    } else {
+    moveForward();
+//    }
   }
   else {
     Serial.println("turn left");
@@ -194,11 +194,11 @@ void turn() {
     delay(800);
     moveRight();
     delay(900);
-    if (leftIR > irThreshold) {
-      loop();
-    } else {
-      moveForward();
-    }
+//    if (leftIR > irThreshold) {
+//      loop();
+//    } else {
+    moveForward();
+//    }
   }
 }
 // Continuous turning logic for sharp turns
