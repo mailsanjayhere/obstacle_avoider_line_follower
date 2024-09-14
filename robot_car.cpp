@@ -69,7 +69,7 @@ void loop() {
   }
   // Stop if both detect white (out of track)
   else if (leftIR <= irThreshold && rightIR <= irThreshold) {
-    Stop();
+    StopAndRealign();
   }
 
   delay(100);  // Small delay for stability
@@ -130,6 +130,19 @@ void Stop() {
   motor3.run(RELEASE);
   motor4.run(RELEASE);
 }
+void realign() {
+  moveBackward();
+  delay(300);  // Adjust this delay based on your track
+  moveForward();
+  delay(300);  // Move forward to try to get back on track
+}
+void StopAndRealign() {
+  // First, stop the robot completely
+  Stop();
+  
+  // Then, try to realign if necessary (if you detect the robot is off-track)
+  realign();
+}
 
 void moveForward() {
   // Move all motors forward at MOTOR_SPEED
@@ -138,7 +151,13 @@ void moveForward() {
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
-
+void moveBackward() {
+  // Move all motors forward at MOTOR_SPEED
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
+}
 // Continuous turning logic for sharp turns
 void turnLeft() {
   motor1.setSpeed(MOTOR_SPEED - 20); // Slow down slightly during the turn
@@ -162,7 +181,7 @@ void turnLeft() {
   motor3.setSpeed(MOTOR_SPEED);
   motor4.setSpeed(MOTOR_SPEED);
   moveForward();  // Stabilize by moving forward after turning
-  delay(200); // Adjust this delay for better stabilization
+//  delay(100); // Adjust this delay for better stabilization
 }
 
 void turnRight() {
@@ -187,5 +206,5 @@ void turnRight() {
   motor3.setSpeed(MOTOR_SPEED);
   motor4.setSpeed(MOTOR_SPEED);
   moveForward();  // Stabilize by moving forward after turning
-  delay(200); // Adjust this delay for better stabilization
+//  delay(100); // Adjust this delay for better stabilization
 }
