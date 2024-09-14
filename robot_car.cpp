@@ -34,7 +34,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(irLeft, INPUT);
   pinMode(irRight, INPUT);
-  servo.attach(9);
+  servo.attach(10);
   servo.write(90); // Center the servo
 
   // Set the speed for all motors
@@ -55,7 +55,9 @@ void loop() {
   Serial.print(" - Right IR: ");
   Serial.println(rightIR);
 
-  // Move forward when both sensors detect black (within the threshold)
+  objectAvoid();  // Check for obstacles
+
+  // Line-following logic
   if (leftIR > irThreshold && rightIR > irThreshold) {
     moveForward();  // Both sensors detect black, move forward
   }
@@ -135,7 +137,6 @@ int lookRight() {
   servo.write(90);  // Return the servo to center
   return rightDistance;
 }
-
 
 void Stop() {
   motor1.run(RELEASE);
