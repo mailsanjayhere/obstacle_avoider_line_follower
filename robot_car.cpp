@@ -26,7 +26,6 @@ int distance = 0;
 int leftDistance;
 int rightDistance;
 boolean object = false;
-bool isStopped = false;  // Flag to check if the robot is stopped
 
 // IR sensor thresholds
 int irThreshold = 500;  // Adjust based on your environment
@@ -56,77 +55,74 @@ void loop() {
   Serial.print(" - Right IR: ");
   Serial.println(rightIR);
 
-  // If both sensors detect black, resume normal operation
+  // Move forward when both sensors detect black (within the threshold)
   if (leftIR > irThreshold && rightIR > irThreshold) {
-    isStopped = false;  // Reset the stopped flag when back on track
-    moveForward();      // Move forward
+    moveForward();  // Both sensors detect black, move forward
   }
-  // If the robot is off-track (both sensors detect white) and not already stopped
-  else if (leftIR <= irThreshold && rightIR <= irThreshold && !isStopped) {
-    StopAndRealign();
-  }
-  // Turn left or right if one sensor detects black and the other detects white
-  else if (leftIR > irThreshold && rightIR <= irThreshold && !isStopped) {
+  // Turn left if left detects black and right detects white
+  else if (leftIR > irThreshold && rightIR <= irThreshold) {
     turnLeft();
-  } else if (leftIR <= irThreshold && rightIR > irThreshold && !isStopped) {
+  }
+  // Turn right if right detects black and left detects white
+  else if (leftIR <= irThreshold && rightIR > irThreshold) {
     turnRight();
+  }
+  // Stop if both detect white (out of track)
+  else if (leftIR <= irThreshold && rightIR <= irThreshold) {
+    Stop();
   }
 
   delay(100);  // Small delay for stability
 }
 
-void StopAndRealign() {
-  // First, stop the robot completely
-  Stop();
+void objectAvoid() {
+  distance = getDistance();
+  if (distance <= 15) {
+    Stop();
+    Serial.println("Obstacle detected! Stopping...");
 
-  // Try realigning a few times, if still off-track, stop completely
-  for (int i = 0; i < 3; i++) {
-    realign();
-    
-    // After realigning, check if it's back on the track
-    int leftIR = analogRead(irLeft);
-    int rightIR = analogRead(irRight);
-    
-    // If back on track, break out of the loop and resume operation
-    if (leftIR > irThreshold || rightIR > irThreshold) {
-      isStopped = false;  // Clear stopped flag and resume
-      return;  // Exit function if track is found
+    lookLeft();
+    lookRight();
+    delay(100);
+
+    if (rightDistance <= leftDistance) {
+      turnLeft();  // Turn left to avoid obstacle
+    } else {
+      turnRight();  // Turn right to avoid obstacle
     }
-  }
-  
-  // If still off-track after 3 attempts, stop completely and set the flag
-  isStopped = true;
-  Stop();
-}
-
-void realign() {
-  // Move backward and check if back on track
-  moveBackward();
-  delay(300);  // Move backward for 300ms
-
-  // Check if back on track after moving backward
-  int leftIR = analogRead(irLeft);
-  int rightIR = analogRead(irRight);
-
-  if (leftIR > irThreshold || rightIR > irThreshold) {
-    // If either sensor detects black, we're back on track
-    return;  // Exit the realign function immediately
-  }
-
-  // If not back on track, move forward to try to realign
-  moveForward();
-  delay(300);  // Move forward for 300ms
-
-  // Check again if back on track after moving forward
-  leftIR = analogRead(irLeft);
-  rightIR = analogRead(irRight);
-
-  if (leftIR > irThreshold || rightIR > irThreshold) {
-    // If either sensor detects black, we're back on track
-    return;  // Exit the realign function
+  } else {
+    moveForward();  // No obstacle, keep moving forward
   }
 }
 
+int getDistance() {
+  delay(50);
+  int cm = sonar.ping_cm();
+  if (cm == 0) {
+    cm = 100; // Return a large value if no object is detected
+  }
+  return cm;
+}
+
+int lookLeft() {
+  servo.write(150); // Look left
+  delay(500);
+  leftDistance = getDistance(); // Measure distance
+  servo.write(90);  // Return to center
+  Serial.print("Left Distance: ");
+  Serial.println(leftDistance);
+  return leftDistance;
+}
+
+int lookRight() {
+  servo.write(30);  // Look right
+  delay(500);
+  rightDistance = getDistance(); // Measure distance
+  servo.write(90);  // Return to center
+  Serial.print("Right Distance: ");
+  Serial.println(rightDistance);
+  return rightDistance;
+}
 
 void Stop() {
   motor1.run(RELEASE);
@@ -143,20 +139,8 @@ void moveForward() {
   motor4.run(FORWARD);
 }
 
-void moveBackward() {
-  // Move all motors backward at MOTOR_SPEED
-  motor1.run(BACKWARD);
-  motor2.run(BACKWARD);
-  motor3.run(BACKWARD);
-  motor4.run(BACKWARD);
-}
-
+// Continuous turning logic for sharp turns
 void turnLeft() {
-  motor1.setSpeed(MOTOR_SPEED - 20); // Slow down slightly during the turn
-  motor2.setSpeed(MOTOR_SPEED - 20);
-  motor3.setSpeed(MOTOR_SPEED - 20);
-  motor4.setSpeed(MOTOR_SPEED - 20);
-  
   // Start turning left
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
@@ -167,22 +151,10 @@ void turnLeft() {
   while (analogRead(irRight) <= irThreshold) {
     // Keep turning until the right IR detects the line again (black)
   }
-
-  motor1.setSpeed(MOTOR_SPEED);
-  motor2.setSpeed(MOTOR_SPEED);
-  motor3.setSpeed(MOTOR_SPEED);
-  motor4.setSpeed(MOTOR_SPEED);
-
   moveForward();  // Stabilize by moving forward after turning
-  delay(100);
 }
 
 void turnRight() {
-  motor1.setSpeed(MOTOR_SPEED - 20); // Slow down slightly during the turn
-  motor2.setSpeed(MOTOR_SPEED - 20);
-  motor3.setSpeed(MOTOR_SPEED - 20);
-  motor4.setSpeed(MOTOR_SPEED - 20);
-  
   // Start turning right
   motor1.run(FORWARD);
   motor2.run(FORWARD);
@@ -193,13 +165,5 @@ void turnRight() {
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
-  
-
-  motor1.setSpeed(MOTOR_SPEED);
-  motor2.setSpeed(MOTOR_SPEED);
-  motor3.setSpeed(MOTOR_SPEED);
-  motor4.setSpeed(MOTOR_SPEED);
-
   moveForward();  // Stabilize by moving forward after turning
-  delay(100);
 }
