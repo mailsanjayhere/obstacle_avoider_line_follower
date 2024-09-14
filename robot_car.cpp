@@ -55,18 +55,23 @@ void loop() {
   Serial.print(" - Right IR: ");
   Serial.println(rightIR);
 
-  objectAvoid();  // Check for obstacles
+
 
   // Line-following logic
   if (leftIR > irThreshold && rightIR > irThreshold) {
-    moveForward();  // Both sensors detect black, move forward
+    objectAvoid();  // Check for obstacles
+//    moveForward();  // Both sensors detect black, move forward
   }
   // Turn left if left detects black and right detects white
   else if (leftIR > irThreshold && rightIR <= irThreshold) {
+    objectAvoid();
+    Serial.println("TL");
     turnLeft();
   }
   // Turn right if right detects black and left detects white
   else if (leftIR <= irThreshold && rightIR > irThreshold) {
+    objectAvoid();
+    Serial.println("TR");
     turnRight();
   }
   // Stop if both detect white (out of track)
@@ -100,10 +105,16 @@ void objectAvoid() {
 
     if (rightDistance <= leftDistance) {
       Serial.println("Turning left to avoid obstacle.");
-      turnLeft();  // Turn left if there's more space on the left
+      //left
+      object = true;
+      turn();
+      Serial.println("turnLeft");
     } else {
       Serial.println("Turning right to avoid obstacle.");
-      turnRight();  // Turn right if there's more space on the right
+      //right
+      object = false;
+      turn();
+      Serial.println("turnRight");
     }
 
     delay(100);  // Small delay after the turn
@@ -152,7 +163,42 @@ void moveForward() {
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
-
+void moveBackward() {
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
+}
+void turn() {
+  if (object == false) {
+    Serial.println("turn Right");
+    turnLeft();
+    delay(700);
+    moveForward();
+    delay(800);
+    turnRight();
+    delay(900);
+    if (digitalRead(irRight) == 1) {
+      loop();
+    } else {
+      moveForward();
+    }
+  }
+  else {
+    Serial.println("turn left");
+    turnRight();
+    delay(700);
+    moveForward();
+    delay(800);
+    turnLeft();
+    delay(900);
+    if (digitalRead(irLeft) == 1) {
+      loop();
+    } else {
+      moveForward();
+    }
+  }
+}
 // Continuous turning logic for sharp turns
 void turnLeft() {
   // Start turning left
