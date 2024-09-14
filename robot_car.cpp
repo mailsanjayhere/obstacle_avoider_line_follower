@@ -87,10 +87,9 @@ void StopAndRealign() {
     int leftIR = analogRead(irLeft);
     int rightIR = analogRead(irRight);
     
-    // If back on track, resume normal operation
+    // If back on track, break out of the loop and resume operation
     if (leftIR > irThreshold || rightIR > irThreshold) {
       isStopped = false;  // Clear stopped flag and resume
-      moveForward();      // Start moving forward again
       return;  // Exit function if track is found
     }
   }
@@ -101,11 +100,31 @@ void StopAndRealign() {
 }
 
 void realign() {
+  // Move backward and check if back on track
   moveBackward();
-  delay(500);  // Extended delay for backing up, adjust as needed (was 300)
-  
+  delay(300);  // Move backward for 300ms
+
+  // Check if back on track after moving backward
+  int leftIR = analogRead(irLeft);
+  int rightIR = analogRead(irRight);
+
+  if (leftIR > irThreshold || rightIR > irThreshold) {
+    // If either sensor detects black, we're back on track
+    return;  // Exit the realign function immediately
+  }
+
+  // If not back on track, move forward to try to realign
   moveForward();
-  delay(300);  // Move forward to try to get back on track
+  delay(300);  // Move forward for 300ms
+
+  // Check again if back on track after moving forward
+  leftIR = analogRead(irLeft);
+  rightIR = analogRead(irRight);
+
+  if (leftIR > irThreshold || rightIR > irThreshold) {
+    // If either sensor detects black, we're back on track
+    return;  // Exit the realign function
+  }
 }
 
 
@@ -155,6 +174,7 @@ void turnLeft() {
   motor4.setSpeed(MOTOR_SPEED);
 
   moveForward();  // Stabilize by moving forward after turning
+  delay(100);
 }
 
 void turnRight() {
@@ -173,6 +193,7 @@ void turnRight() {
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
+  
 
   motor1.setSpeed(MOTOR_SPEED);
   motor2.setSpeed(MOTOR_SPEED);
@@ -180,4 +201,5 @@ void turnRight() {
   motor4.setSpeed(MOTOR_SPEED);
 
   moveForward();  // Stabilize by moving forward after turning
+  delay(100);
 }
