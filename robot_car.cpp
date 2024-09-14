@@ -76,53 +76,66 @@ void loop() {
 }
 
 void objectAvoid() {
-  distance = getDistance();
+  distance = getDistance();  // Get distance from ultrasonic sensor
+  
+  Serial.print("Object distance: ");
+  Serial.println(distance);  // Log the distance
+
   if (distance <= 15) {
-    Stop();
+    Stop();  // Stop when an obstacle is detected
     Serial.println("Obstacle detected! Stopping...");
 
+    // Look left and right, then choose the direction with more space
     lookLeft();
     lookRight();
+
+    Serial.print("Left Distance: ");
+    Serial.println(leftDistance);
+    Serial.print("Right Distance: ");
+    Serial.println(rightDistance);
+    
     delay(100);
 
     if (rightDistance <= leftDistance) {
-      turnLeft();  // Turn left to avoid obstacle
+      Serial.println("Turning left to avoid obstacle.");
+      turnLeft();  // Turn left if there's more space on the left
     } else {
-      turnRight();  // Turn right to avoid obstacle
+      Serial.println("Turning right to avoid obstacle.");
+      turnRight();  // Turn right if there's more space on the right
     }
+
+    delay(100);  // Small delay after the turn
   } else {
+    Serial.println("No obstacle, moving forward...");
     moveForward();  // No obstacle, keep moving forward
   }
 }
 
 int getDistance() {
-  delay(50);
-  int cm = sonar.ping_cm();
+  delay(50);  // Short delay before taking a reading
+  int cm = sonar.ping_cm();  // Get distance in centimeters
   if (cm == 0) {
-    cm = 100; // Return a large value if no object is detected
+    cm = 100;  // Return a large value if no object is detected
   }
   return cm;
 }
 
 int lookLeft() {
-  servo.write(150); // Look left
-  delay(500);
-  leftDistance = getDistance(); // Measure distance
-  servo.write(90);  // Return to center
-  Serial.print("Left Distance: ");
-  Serial.println(leftDistance);
+  servo.write(150);  // Turn the servo to look left
+  delay(500);  // Allow time for the servo to move and measure distance
+  leftDistance = getDistance();  // Get distance on the left
+  servo.write(90);  // Return the servo to center
   return leftDistance;
 }
 
 int lookRight() {
-  servo.write(30);  // Look right
-  delay(500);
-  rightDistance = getDistance(); // Measure distance
-  servo.write(90);  // Return to center
-  Serial.print("Right Distance: ");
-  Serial.println(rightDistance);
+  servo.write(30);  // Turn the servo to look right
+  delay(500);  // Allow time for the servo to move and measure distance
+  rightDistance = getDistance();  // Get distance on the right
+  servo.write(90);  // Return the servo to center
   return rightDistance;
 }
+
 
 void Stop() {
   motor1.run(RELEASE);
