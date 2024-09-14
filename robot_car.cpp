@@ -141,6 +141,11 @@ void moveForward() {
 
 // Continuous turning logic for sharp turns
 void turnLeft() {
+  motor1.setSpeed(MOTOR_SPEED - 20); // Slow down slightly during the turn
+  motor2.setSpeed(MOTOR_SPEED - 20);
+  motor3.setSpeed(MOTOR_SPEED - 20);
+  motor4.setSpeed(MOTOR_SPEED - 20);
+  
   // Start turning left
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
@@ -151,11 +156,21 @@ void turnLeft() {
   while (analogRead(irRight) <= irThreshold) {
     // Keep turning until the right IR detects the line again (black)
   }
+  // Restore normal speed after the turn
+  motor1.setSpeed(MOTOR_SPEED);
+  motor2.setSpeed(MOTOR_SPEED);
+  motor3.setSpeed(MOTOR_SPEED);
+  motor4.setSpeed(MOTOR_SPEED);
   moveForward();  // Stabilize by moving forward after turning
   delay(200); // Adjust this delay for better stabilization
 }
 
 void turnRight() {
+  motor1.setSpeed(MOTOR_SPEED - 20); // Slow down slightly during the turn
+  motor2.setSpeed(MOTOR_SPEED - 20);
+  motor3.setSpeed(MOTOR_SPEED - 20);
+  motor4.setSpeed(MOTOR_SPEED - 20);
+  
   // Start turning right
   motor1.run(FORWARD);
   motor2.run(FORWARD);
@@ -166,6 +181,11 @@ void turnRight() {
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
+  // Restore normal speed after the turn
+  motor1.setSpeed(MOTOR_SPEED);
+  motor2.setSpeed(MOTOR_SPEED);
+  motor3.setSpeed(MOTOR_SPEED);
+  motor4.setSpeed(MOTOR_SPEED);
   moveForward();  // Stabilize by moving forward after turning
   delay(200); // Adjust this delay for better stabilization
 }
