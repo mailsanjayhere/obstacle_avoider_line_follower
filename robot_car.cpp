@@ -25,6 +25,8 @@ AF_DCMotor motor4(4, MOTOR34_1KHZ);
 int distance = 0;
 int leftDistance;
 int rightDistance;
+int leftIR;
+int rightIR;
 boolean object = false;
 
 // IR sensor thresholds
@@ -46,8 +48,8 @@ void setup() {
 
 void loop() {
   // Read IR sensor values as analog
-  int leftIR = analogRead(irLeft);
-  int rightIR = analogRead(irRight);
+  leftIR = analogRead(irLeft);
+  rightIR = analogRead(irRight);
 
   // Print the IR sensor values for debugging
   Serial.print("Left IR: ");
