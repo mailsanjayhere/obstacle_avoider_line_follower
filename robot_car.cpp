@@ -67,7 +67,7 @@ void loop() {
   else if (leftIR <= irThreshold && rightIR > irThreshold) {
     turnRight();
   }
-  // Stop if both detect white (out of track)
+  // Stop and attempt to realign if both detect white (off the track)
   else if (leftIR <= irThreshold && rightIR <= irThreshold) {
     StopAndRealign();
   }
@@ -75,53 +75,33 @@ void loop() {
   delay(100);  // Small delay for stability
 }
 
-void objectAvoid() {
-  distance = getDistance();
-  if (distance <= 15) {
-    Stop();
-    Serial.println("Obstacle detected! Stopping...");
-
-    lookLeft();
-    lookRight();
-    delay(100);
-
-    if (rightDistance <= leftDistance) {
-      turnLeft();  // Turn left to avoid obstacle
-    } else {
-      turnRight();  // Turn right to avoid obstacle
+void StopAndRealign() {
+  // First, stop the robot completely
+  Stop();
+  
+  // Try realigning a few times, if still off-track, stop completely
+  for (int i = 0; i < 3; i++) {
+    realign();
+    
+    // After realigning, check if it's back on the track
+    int leftIR = analogRead(irLeft);
+    int rightIR = analogRead(irRight);
+    
+    // If back on track, break out of the loop
+    if (leftIR > irThreshold || rightIR > irThreshold) {
+      return;  // Exit function if track is found
     }
-  } else {
-    moveForward();  // No obstacle, keep moving forward
   }
+  
+  // If still off-track after 3 attempts, stop completely
+  Stop();
 }
 
-int getDistance() {
-  delay(50);
-  int cm = sonar.ping_cm();
-  if (cm == 0) {
-    cm = 100; // Return a large value if no object is detected
-  }
-  return cm;
-}
-
-int lookLeft() {
-  servo.write(150); // Look left
-  delay(500);
-  leftDistance = getDistance(); // Measure distance
-  servo.write(90);  // Return to center
-  Serial.print("Left Distance: ");
-  Serial.println(leftDistance);
-  return leftDistance;
-}
-
-int lookRight() {
-  servo.write(30);  // Look right
-  delay(500);
-  rightDistance = getDistance(); // Measure distance
-  servo.write(90);  // Return to center
-  Serial.print("Right Distance: ");
-  Serial.println(rightDistance);
-  return rightDistance;
+void realign() {
+  moveBackward();
+  delay(300);  // Adjust this delay based on your track
+  moveForward();
+  delay(300);  // Move forward to try to get back on track
 }
 
 void Stop() {
@@ -129,19 +109,6 @@ void Stop() {
   motor2.run(RELEASE);
   motor3.run(RELEASE);
   motor4.run(RELEASE);
-}
-void realign() {
-  moveBackward();
-  delay(300);  // Adjust this delay based on your track
-  moveForward();
-  delay(300);  // Move forward to try to get back on track
-}
-void StopAndRealign() {
-  // First, stop the robot completely
-  Stop();
-  
-  // Then, try to realign if necessary (if you detect the robot is off-track)
-  realign();
 }
 
 void moveForward() {
@@ -151,14 +118,15 @@ void moveForward() {
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
+
 void moveBackward() {
-  // Move all motors forward at MOTOR_SPEED
+  // Move all motors backward at MOTOR_SPEED
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
 }
-// Continuous turning logic for sharp turns
+
 void turnLeft() {
   motor1.setSpeed(MOTOR_SPEED - 20); // Slow down slightly during the turn
   motor2.setSpeed(MOTOR_SPEED - 20);
@@ -175,13 +143,13 @@ void turnLeft() {
   while (analogRead(irRight) <= irThreshold) {
     // Keep turning until the right IR detects the line again (black)
   }
-  // Restore normal speed after the turn
+
   motor1.setSpeed(MOTOR_SPEED);
   motor2.setSpeed(MOTOR_SPEED);
   motor3.setSpeed(MOTOR_SPEED);
   motor4.setSpeed(MOTOR_SPEED);
+
   moveForward();  // Stabilize by moving forward after turning
-//  delay(100); // Adjust this delay for better stabilization
 }
 
 void turnRight() {
@@ -200,11 +168,11 @@ void turnRight() {
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
-  // Restore normal speed after the turn
+
   motor1.setSpeed(MOTOR_SPEED);
   motor2.setSpeed(MOTOR_SPEED);
   motor3.setSpeed(MOTOR_SPEED);
   motor4.setSpeed(MOTOR_SPEED);
+
   moveForward();  // Stabilize by moving forward after turning
-//  delay(100); // Adjust this delay for better stabilization
 }
