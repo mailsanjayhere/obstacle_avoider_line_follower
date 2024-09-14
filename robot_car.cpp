@@ -169,22 +169,26 @@ void avoidObstacle() {
     Serial.println("Turning left to avoid obstacle.");
     moveLeft();
     delay(700);  // Move left for 700ms to avoid the obstacle
-
+    moveForward();  // Continue moving forward after avoiding obstacle
+    delay(800);  // Move right for 800ms to return to the track
     Serial.println("Turning right to return to track.");
     moveRight();
-    delay(800);  // Move right for 800ms to return to the track
+    delay(900);  // Move right for 800ms to return to the track
 
     moveForward();  // Continue moving forward after avoiding obstacle
+    delay(1000);
   } else {
     Serial.println("Turning right to avoid obstacle.");
     moveRight();
     delay(700);  // Move right for 700ms to avoid the obstacle
-
+    moveForward();  // Continue moving forward after avoiding obstacle
+    delay(800);  // Move right for 800ms to return to the track
     Serial.println("Turning left to return to track.");
     moveLeft();
-    delay(800);  // Move left for 800ms to return to the track
+    delay(900);  // Move left for 800ms to return to the track
 
     moveForward();  // Continue moving forward after avoiding obstacle
+    delay(1000);
   }
 }
 
