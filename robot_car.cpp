@@ -79,40 +79,26 @@ void loop() {
 }
 
 void objectAvoid() {
-  distance = getDistance();  // Get distance from ultrasonic sensor
+  distance = getDistance();
   
-  Serial.print("Object distance: ");
-  Serial.println(distance);  // Log the distance
-
   if (distance <= 15) {
-    Stop();  // Stop when an obstacle is detected
     Serial.println("Obstacle detected! Stopping...");
+    Stop();
+    moveBackward();
+    delay(500);  // Move backward for 500 ms
 
-    // Look left and right, then choose the direction with more space
-    lookLeft();
-    lookRight();
-
-    Serial.print("Left Distance: ");
-    Serial.println(leftDistance);
-    Serial.print("Right Distance: ");
-    Serial.println(rightDistance);
-    
-    delay(100);
-
-    if (rightDistance <= leftDistance) {
-      Serial.println("Turning left to avoid obstacle.");
-      object = true;
-      avoidObstacle();  // Turn left, move forward, then turn right
-    } else {
-      Serial.println("Turning right to avoid obstacle.");
-      object = false;
-      avoidObstacle();  // Turn right, move forward, then turn left
+    // Reverse and realign logic: Turn and return to track
+    if (leftIR <= irThreshold && rightIR <= irThreshold) {
+      Serial.println("Reversing and realigning...");
+      turnLeft();
+      delay(500);
+      moveForward();
+      delay(800); // Move forward to get back on track
+      turnRight();
+      delay(500);  // Adjust as needed
     }
-
-    delay(100);  // Small delay after the turn
   } else {
-    Serial.println("No obstacle, moving forward...");
-    moveForward();  // No obstacle, keep moving forward
+    moveForward();
   }
 }
 
@@ -161,45 +147,6 @@ void moveBackward() {
   motor2.run(BACKWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
-}
-
-// Avoidance function: Move far enough outside the track to bypass the obstacle
-void avoidObstacle() {
-  if (object == true) {
-    // Turn left to go outside the track
-    Serial.println("Turning left to avoid obstacle.");
-    moveLeft();
-    delay(1000);  // Move left for 1000ms to go outside the track
-
-    // Move forward outside the track to bypass the obstacle
-    Serial.println("Moving forward to bypass the obstacle.");
-    moveForward();
-    delay(1500);  // Move forward for 1500ms to pass the obstacle
-
-    // Turn right to return to the track
-    Serial.println("Turning right to return to track.");
-    moveRight();
-    delay(1000);  // Move right for 1000ms to return to the track
-
-    moveForward();  // Continue moving forward after avoiding the obstacle
-  } else {
-    // Turn right to go outside the track
-    Serial.println("Turning right to avoid obstacle.");
-    moveRight();
-    delay(1000);  // Move right for 1000ms to go outside the track
-
-    // Move forward outside the track to bypass the obstacle
-    Serial.println("Moving forward to bypass the obstacle.");
-    moveForward();
-    delay(1500);  // Move forward for 1500ms to pass the obstacle
-
-    // Turn left to return to the track
-    Serial.println("Turning left to return to track.");
-    moveLeft();
-    delay(1000);  // Move left for 1000ms to return to the track
-
-    moveForward();  // Continue moving forward after avoiding the obstacle
-  }
 }
 
 // Continuous turning logic for sharp turns (used for normal line-following)
