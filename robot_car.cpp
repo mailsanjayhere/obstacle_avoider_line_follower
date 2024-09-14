@@ -34,7 +34,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(irLeft, INPUT);
   pinMode(irRight, INPUT);
-  servo.attach(10);
+  servo.attach(9);
   servo.write(90); // Center the servo
 
   // Set the speed for all motors
