@@ -172,13 +172,13 @@ void moveBackward() {
 void turn() {
   if (object == false) {
     Serial.println("turn Right");
-    turnLeft();
+    moveLeft();
     delay(700);
     moveForward();
     delay(800);
-    turnRight();
+    moveRight();
     delay(900);
-    if (digitalRead(irRight) == 1) {
+    if (rightIR > irThreshold) {
       loop();
     } else {
       moveForward();
@@ -186,13 +186,13 @@ void turn() {
   }
   else {
     Serial.println("turn left");
-    turnRight();
+    moveRight();
     delay(700);
     moveForward();
     delay(800);
-    turnLeft();
+    moveLeft();
     delay(900);
-    if (digitalRead(irLeft) == 1) {
+    if (leftIR <= irThreshold) {
       loop();
     } else {
       moveForward();
@@ -226,4 +226,16 @@ void turnRight() {
     // Keep turning until the left IR detects the line again (black)
   }
   moveForward();  // Stabilize by moving forward after turning
+}
+void moveRight() {
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(FORWARD);
+  motor4.run(FORWARD);
+}
+void moveLeft() {
+  motor1.run(FORWARD);
+  motor2.run(FORWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
 }
