@@ -2,17 +2,14 @@
 #include <Servo.h>
 #include <AFMotor.h>
 
-// hc-sr04 sensor
 #define TRIGGER_PIN A2
 #define ECHO_PIN A3
 #define max_distance 50
 
-// ir sensor
 #define irLeft A0
 #define irRight A1
 
-// motor
-#define MOTOR_SPEED 120  // Single speed for all operations
+#define MOTOR_SPEED 120
 
 Servo servo;
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, max_distance);
@@ -23,23 +20,20 @@ AF_DCMotor motor3(3, MOTOR34_1KHZ);
 AF_DCMotor motor4(4, MOTOR34_1KHZ);
 
 int distance = 0;
-int leftDistance;
-int rightDistance;
 int leftIR;
 int rightIR;
 boolean object = false;
+boolean avoidingObstacle = false;  // State variable to prevent loops
 
-// IR sensor thresholds
-int irThreshold = 500;  // Adjust based on your environment
+int irThreshold = 500;
 
 void setup() {
   Serial.begin(9600);
   pinMode(irLeft, INPUT);
   pinMode(irRight, INPUT);
   servo.attach(9);
-  servo.write(90); // Center the servo
+  servo.write(90);
 
-  // Set the speed for all motors
   motor1.setSpeed(MOTOR_SPEED);
   motor2.setSpeed(MOTOR_SPEED);
   motor3.setSpeed(MOTOR_SPEED);
@@ -47,84 +41,60 @@ void setup() {
 }
 
 void loop() {
-  // Read IR sensor values as analog
   leftIR = analogRead(irLeft);
   rightIR = analogRead(irRight);
 
-  // Print the IR sensor values for debugging
   Serial.print("Left IR: ");
   Serial.print(leftIR);
   Serial.print(" - Right IR: ");
   Serial.println(rightIR);
 
-  // Line-following logic
-  if (leftIR > irThreshold && rightIR > irThreshold) {
-    objectAvoid();  // Check for obstacles
-  }
-  else if (leftIR > irThreshold && rightIR <= irThreshold) {
-    objectAvoid();
-    Serial.println("TL");
-    turnLeft();
-  }
-  else if (leftIR <= irThreshold && rightIR > irThreshold) {
-    objectAvoid();
-    Serial.println("TR");
-    turnRight();
-  }
-  else if (leftIR <= irThreshold && rightIR <= irThreshold) {
-    Stop();
+  if (!avoidingObstacle) {
+    if (leftIR > irThreshold && rightIR > irThreshold) {
+      objectAvoid();  // Check for obstacles
+    } else if (leftIR > irThreshold && rightIR <= irThreshold) {
+      turnLeft();
+    } else if (leftIR <= irThreshold && rightIR > irThreshold) {
+      turnRight();
+    } else if (leftIR <= irThreshold && rightIR <= irThreshold) {
+      Stop();
+    }
   }
 
-  delay(100);  // Small delay for stability
+  delay(100);
 }
 
 void objectAvoid() {
   distance = getDistance();
   
   if (distance <= 15) {
+    avoidingObstacle = true;  // Set the flag
     Serial.println("Obstacle detected! Stopping...");
     Stop();
     moveBackward();
-    delay(500);  // Move backward for 500 ms
+    delay(500);
 
-    // Reverse and realign logic: Turn and return to track
-    if (leftIR <= irThreshold && rightIR <= irThreshold) {
-      Serial.println("Reversing and realigning...");
-      turnLeft();
-      delay(500);
-      moveForward();
-      delay(800); // Move forward to get back on track
-      turnRight();
-      delay(500);  // Adjust as needed
-    }
+    turnLeft();
+    delay(700);
+    moveForward();
+    delay(800);
+    
+    turnRight();
+    delay(700);
+    
+    avoidingObstacle = false;  // Reset the flag after maneuver
   } else {
     moveForward();
   }
 }
 
 int getDistance() {
-  delay(50);  // Short delay before taking a reading
-  int cm = sonar.ping_cm();  // Get distance in centimeters
+  delay(50);
+  int cm = sonar.ping_cm();
   if (cm == 0) {
-    cm = 100;  // Return a large value if no object is detected
+    cm = 100;  // Return large value if no object detected
   }
   return cm;
-}
-
-int lookLeft() {
-  servo.write(150);  // Turn the servo to look left
-  delay(500);  // Allow time for the servo to move and measure distance
-  leftDistance = getDistance();  // Get distance on the left
-  servo.write(90);  // Return the servo to center
-  return leftDistance;
-}
-
-int lookRight() {
-  servo.write(30);  // Turn the servo to look right
-  delay(500);  // Allow time for the servo to move and measure distance
-  rightDistance = getDistance();  // Get distance on the right
-  servo.write(90);  // Return the servo to center
-  return rightDistance;
 }
 
 void Stop() {
@@ -135,7 +105,6 @@ void Stop() {
 }
 
 void moveForward() {
-  // Move all motors forward at MOTOR_SPEED
   motor1.run(FORWARD);
   motor2.run(FORWARD);
   motor3.run(FORWARD);
@@ -149,17 +118,11 @@ void moveBackward() {
   motor4.run(BACKWARD);
 }
 
-// Continuous turning logic for sharp turns (used for normal line-following)
 void turnLeft() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(FORWARD);
   motor4.run(FORWARD);
-
-  while (analogRead(irRight) <= irThreshold) {
-    // Keep turning until the right IR detects the line again (black)
-  }
-  moveForward();  // Stabilize by moving forward after turning
 }
 
 void turnRight() {
@@ -167,23 +130,4 @@ void turnRight() {
   motor2.run(FORWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
-
-  while (analogRead(irLeft) <= irThreshold) {
-    // Keep turning until the left IR detects the line again (black)
-  }
-  moveForward();  // Stabilize by moving forward after turning
-}
-
-void moveRight() {
-  motor1.run(FORWARD);
-  motor2.run(FORWARD);
-  motor3.run(BACKWARD);
-  motor4.run(BACKWARD);
-}
-
-void moveLeft() {
-  motor1.run(BACKWARD);
-  motor2.run(BACKWARD);
-  motor3.run(FORWARD);
-  motor4.run(FORWARD);
 }
