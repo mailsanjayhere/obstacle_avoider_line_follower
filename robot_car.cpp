@@ -57,26 +57,20 @@ void loop() {
   Serial.print(" - Right IR: ");
   Serial.println(rightIR);
 
-
-
   // Line-following logic
   if (leftIR > irThreshold && rightIR > irThreshold) {
     objectAvoid();  // Check for obstacles
-//    moveForward();  // Both sensors detect black, move forward
   }
-  // Turn left if left detects black and right detects white
   else if (leftIR > irThreshold && rightIR <= irThreshold) {
     objectAvoid();
     Serial.println("TL");
     turnLeft();
   }
-  // Turn right if right detects black and left detects white
   else if (leftIR <= irThreshold && rightIR > irThreshold) {
     objectAvoid();
     Serial.println("TR");
     turnRight();
   }
-  // Stop if both detect white (out of track)
   else if (leftIR <= irThreshold && rightIR <= irThreshold) {
     Stop();
   }
@@ -107,16 +101,12 @@ void objectAvoid() {
 
     if (rightDistance <= leftDistance) {
       Serial.println("Turning left to avoid obstacle.");
-      //left
       object = true;
-      turn();
-      Serial.println("turnLeft");
+      turnLeftAvoid();  // Turn left if left has more space
     } else {
       Serial.println("Turning right to avoid obstacle.");
-      //right
       object = false;
-      turn();
-      Serial.println("turnRight");
+      turnRightAvoid();  // Turn right if right has more space
     }
 
     delay(100);  // Small delay after the turn
@@ -165,51 +155,47 @@ void moveForward() {
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
+
 void moveBackward() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
 }
-void turn() {
-  if (object == false) {
-    Serial.println("turn Right");
-    moveRight();
-    delay(700);
-    moveForward();
-    delay(800);
-    moveLeft();
-    delay(900);
-//    if (rightIR > irThreshold) {
-//      loop();
-//    } else {
-    moveForward();
-//    }
-  }
-  else {
-    Serial.println("turn left");
-    moveLeft();
-    delay(700);
-    moveForward();
-    delay(800);
-    moveRight();
-    delay(900);
-//    if (leftIR > irThreshold) {
-//      loop();
-//    } else {
-    moveForward();
-//    }
-  }
-}
-// Continuous turning logic for sharp turns
-void turnLeft() {
-  // Start turning left
+
+// Avoidance turn logic for left turn
+void turnLeftAvoid() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 
-  // Keep turning left until the right sensor detects black
+  delay(700);  // Turn left for a limited time to avoid object
+
+  // After turning, check if the robot is back on track
+  recheckLine();
+}
+
+// Avoidance turn logic for right turn
+void turnRightAvoid() {
+  motor1.run(FORWARD);
+  motor2.run(FORWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
+
+  delay(700);  // Turn right for a limited time to avoid object
+
+  // After turning, check if the robot is back on track
+  recheckLine();
+}
+
+// Continuous turning logic for sharp turns (used for normal line-following)
+void turnLeft() {
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(FORWARD);
+  motor4.run(FORWARD);
+
   while (analogRead(irRight) <= irThreshold) {
     // Keep turning until the right IR detects the line again (black)
   }
@@ -217,27 +203,32 @@ void turnLeft() {
 }
 
 void turnRight() {
-  // Start turning right
   motor1.run(FORWARD);
   motor2.run(FORWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
 
-  // Keep turning right until the left sensor detects black
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
   moveForward();  // Stabilize by moving forward after turning
 }
-void moveRight() {
-  motor1.run(FORWARD);
-  motor2.run(FORWARD);
-  motor3.run(BACKWARD);
-  motor4.run(BACKWARD);
-}
-void moveLeft() {
-  motor1.run(BACKWARD);
-  motor2.run(BACKWARD);
-  motor3.run(FORWARD);
-  motor4.run(FORWARD);
+
+// Function to recheck the line after obstacle avoidance
+void recheckLine() {
+  leftIR = analogRead(irLeft);
+  rightIR = analogRead(irRight);
+
+  // If back on track, move forward
+  if (leftIR > irThreshold && rightIR > irThreshold) {
+    moveForward();
+  }
+  // If not on track, continue normal line-following logic
+  else if (leftIR > irThreshold && rightIR <= irThreshold) {
+    turnLeft();
+  } else if (leftIR <= irThreshold && rightIR > irThreshold) {
+    turnRight();
+  } else {
+    Stop();  // Stop if both sensors detect white (out of track)
+  }
 }
