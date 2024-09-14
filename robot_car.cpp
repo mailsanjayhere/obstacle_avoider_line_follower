@@ -26,6 +26,7 @@ int distance = 0;
 int leftDistance;
 int rightDistance;
 boolean object = false;
+bool isStopped = false;  // Flag to check if the robot is stopped
 
 // IR sensor thresholds
 int irThreshold = 500;  // Adjust based on your environment
@@ -55,21 +56,20 @@ void loop() {
   Serial.print(" - Right IR: ");
   Serial.println(rightIR);
 
-  // Move forward when both sensors detect black (within the threshold)
+  // If both sensors detect black, resume normal operation
   if (leftIR > irThreshold && rightIR > irThreshold) {
-    moveForward();  // Both sensors detect black, move forward
+    isStopped = false;  // Reset the stopped flag when back on track
+    moveForward();      // Move forward
   }
-  // Turn left if left detects black and right detects white
-  else if (leftIR > irThreshold && rightIR <= irThreshold) {
-    turnLeft();
-  }
-  // Turn right if right detects black and left detects white
-  else if (leftIR <= irThreshold && rightIR > irThreshold) {
-    turnRight();
-  }
-  // Stop and attempt to realign if both detect white (off the track)
-  else if (leftIR <= irThreshold && rightIR <= irThreshold) {
+  // If the robot is off-track (both sensors detect white) and not already stopped
+  else if (leftIR <= irThreshold && rightIR <= irThreshold && !isStopped) {
     StopAndRealign();
+  }
+  // Turn left or right if one sensor detects black and the other detects white
+  else if (leftIR > irThreshold && rightIR <= irThreshold && !isStopped) {
+    turnLeft();
+  } else if (leftIR <= irThreshold && rightIR > irThreshold && !isStopped) {
+    turnRight();
   }
 
   delay(100);  // Small delay for stability
@@ -78,7 +78,7 @@ void loop() {
 void StopAndRealign() {
   // First, stop the robot completely
   Stop();
-  
+
   // Try realigning a few times, if still off-track, stop completely
   for (int i = 0; i < 3; i++) {
     realign();
@@ -87,13 +87,15 @@ void StopAndRealign() {
     int leftIR = analogRead(irLeft);
     int rightIR = analogRead(irRight);
     
-    // If back on track, break out of the loop
+    // If back on track, break out of the loop and resume operation
     if (leftIR > irThreshold || rightIR > irThreshold) {
+      isStopped = false;  // Clear stopped flag and resume
       return;  // Exit function if track is found
     }
   }
   
-  // If still off-track after 3 attempts, stop completely
+  // If still off-track after 3 attempts, stop completely and set the flag
+  isStopped = true;
   Stop();
 }
 
@@ -150,6 +152,7 @@ void turnLeft() {
   motor4.setSpeed(MOTOR_SPEED);
 
   moveForward();  // Stabilize by moving forward after turning
+  delay(100);
 }
 
 void turnRight() {
@@ -168,6 +171,7 @@ void turnRight() {
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
+  
 
   motor1.setSpeed(MOTOR_SPEED);
   motor2.setSpeed(MOTOR_SPEED);
@@ -175,4 +179,5 @@ void turnRight() {
   motor4.setSpeed(MOTOR_SPEED);
 
   moveForward();  // Stabilize by moving forward after turning
+  delay(100);
 }
