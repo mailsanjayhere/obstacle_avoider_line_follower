@@ -102,11 +102,11 @@ void objectAvoid() {
     if (rightDistance <= leftDistance) {
       Serial.println("Turning left to avoid obstacle.");
       object = true;
-      turnLeftAvoid();  // Turn left if left has more space
+      avoidObstacle();  // Turn left, then right to return to path
     } else {
       Serial.println("Turning right to avoid obstacle.");
       object = false;
-      turnRightAvoid();  // Turn right if right has more space
+      avoidObstacle();  // Turn right, then left to return to path
     }
 
     delay(100);  // Small delay after the turn
@@ -163,30 +163,29 @@ void moveBackward() {
   motor4.run(BACKWARD);
 }
 
-// Avoidance turn logic for left turn
-void turnLeftAvoid() {
-  motor1.run(BACKWARD);
-  motor2.run(BACKWARD);
-  motor3.run(FORWARD);
-  motor4.run(FORWARD);
+// Avoidance function: left turn followed by right turn to return to track
+void avoidObstacle() {
+  if (object == true) {
+    Serial.println("Turning left to avoid obstacle.");
+    moveLeft();
+    delay(700);  // Move left for 700ms to avoid the obstacle
 
-  delay(700);  // Turn left for a limited time to avoid object
+    Serial.println("Turning right to return to track.");
+    moveRight();
+    delay(800);  // Move right for 800ms to return to the track
 
-  // After turning, check if the robot is back on track
-  recheckLine();
-}
+    moveForward();  // Continue moving forward after avoiding obstacle
+  } else {
+    Serial.println("Turning right to avoid obstacle.");
+    moveRight();
+    delay(700);  // Move right for 700ms to avoid the obstacle
 
-// Avoidance turn logic for right turn
-void turnRightAvoid() {
-  motor1.run(FORWARD);
-  motor2.run(FORWARD);
-  motor3.run(BACKWARD);
-  motor4.run(BACKWARD);
+    Serial.println("Turning left to return to track.");
+    moveLeft();
+    delay(800);  // Move left for 800ms to return to the track
 
-  delay(700);  // Turn right for a limited time to avoid object
-
-  // After turning, check if the robot is back on track
-  recheckLine();
+    moveForward();  // Continue moving forward after avoiding obstacle
+  }
 }
 
 // Continuous turning logic for sharp turns (used for normal line-following)
@@ -214,21 +213,16 @@ void turnRight() {
   moveForward();  // Stabilize by moving forward after turning
 }
 
-// Function to recheck the line after obstacle avoidance
-void recheckLine() {
-  leftIR = analogRead(irLeft);
-  rightIR = analogRead(irRight);
+void moveRight() {
+  motor1.run(FORWARD);
+  motor2.run(FORWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
+}
 
-  // If back on track, move forward
-  if (leftIR > irThreshold && rightIR > irThreshold) {
-    moveForward();
-  }
-  // If not on track, continue normal line-following logic
-  else if (leftIR > irThreshold && rightIR <= irThreshold) {
-    turnLeft();
-  } else if (leftIR <= irThreshold && rightIR > irThreshold) {
-    turnRight();
-  } else {
-    Stop();  // Stop if both sensors detect white (out of track)
-  }
+void moveLeft() {
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(FORWARD);
+  motor4.run(FORWARD);
 }
