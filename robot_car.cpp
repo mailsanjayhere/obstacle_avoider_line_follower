@@ -87,9 +87,10 @@ void StopAndRealign() {
     int leftIR = analogRead(irLeft);
     int rightIR = analogRead(irRight);
     
-    // If back on track, break out of the loop and resume operation
+    // If back on track, resume normal operation
     if (leftIR > irThreshold || rightIR > irThreshold) {
       isStopped = false;  // Clear stopped flag and resume
+      moveForward();      // Start moving forward again
       return;  // Exit function if track is found
     }
   }
@@ -101,10 +102,12 @@ void StopAndRealign() {
 
 void realign() {
   moveBackward();
-  delay(300);  // Adjust this delay based on your track
+  delay(500);  // Extended delay for backing up, adjust as needed (was 300)
+  
   moveForward();
   delay(300);  // Move forward to try to get back on track
 }
+
 
 void Stop() {
   motor1.run(RELEASE);
@@ -152,7 +155,6 @@ void turnLeft() {
   motor4.setSpeed(MOTOR_SPEED);
 
   moveForward();  // Stabilize by moving forward after turning
-  delay(100);
 }
 
 void turnRight() {
@@ -171,7 +173,6 @@ void turnRight() {
   while (analogRead(irLeft) <= irThreshold) {
     // Keep turning until the left IR detects the line again (black)
   }
-  
 
   motor1.setSpeed(MOTOR_SPEED);
   motor2.setSpeed(MOTOR_SPEED);
@@ -179,5 +180,4 @@ void turnRight() {
   motor4.setSpeed(MOTOR_SPEED);
 
   moveForward();  // Stabilize by moving forward after turning
-  delay(100);
 }
