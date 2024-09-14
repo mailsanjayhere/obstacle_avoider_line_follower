@@ -194,7 +194,7 @@ void turn() {
     delay(800);
     moveRight();
     delay(900);
-    if (leftIR <= irThreshold) {
+    if (leftIR > irThreshold) {
       loop();
     } else {
       moveForward();
