@@ -152,6 +152,7 @@ void turnLeft() {
     // Keep turning until the right IR detects the line again (black)
   }
   moveForward();  // Stabilize by moving forward after turning
+  delay(200); // Adjust this delay for better stabilization
 }
 
 void turnRight() {
@@ -166,4 +167,5 @@ void turnRight() {
     // Keep turning until the left IR detects the line again (black)
   }
   moveForward();  // Stabilize by moving forward after turning
+  delay(200); // Adjust this delay for better stabilization
 }
