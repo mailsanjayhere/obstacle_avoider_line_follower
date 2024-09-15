@@ -52,11 +52,11 @@ void loop() {
   } else if (leftIR > irThreshold && rightIR <= irThreshold) {
     objectAvoid();
     Serial.println("TL");
-    moveLeft();  // Left detects black, turn left
+    moveRight();  // Left detects black, turn left
   } else if (leftIR <= irThreshold && rightIR > irThreshold) {
     objectAvoid();
     Serial.println("TR");
-    moveRight();  // Right detects black, turn right
+    moveLeft();  // Right detects black, turn right
   } else {
     Stop();  // Both sensors off-track
   }
@@ -161,14 +161,14 @@ void realign() {
   Serial.println("Back on track.");
 }
 
-void moveLeft() {
+void moveRight() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
 
-void moveRight() {
+void moveLeft() {
   motor1.run(FORWARD);
   motor2.run(FORWARD);
   motor3.run(BACKWARD);
