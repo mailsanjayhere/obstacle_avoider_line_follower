@@ -88,9 +88,9 @@ void objectAvoid() {
     delay(100);
 
     if (rightDistance <= leftDistance) {
-      turnLeft();  // Turn left to avoid obstacle
+      moveLeft();  // Turn left to avoid obstacle
     } else {
-      turnRight();  // Turn right to avoid obstacle
+      moveRight();  // Turn right to avoid obstacle
     }
   } else {
     moveForward();  // No obstacle, keep moving forward
@@ -168,4 +168,17 @@ void turnRight() {
     // Keep turning until the left IR detects the line again (black)
   }
   moveForward();  // Stabilize by moving forward after turning
+}
+void moveRight() {
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(FORWARD);
+  motor4.run(FORWARD);
+}
+
+void moveLeft() {
+  motor1.run(FORWARD);
+  motor2.run(FORWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
 }
