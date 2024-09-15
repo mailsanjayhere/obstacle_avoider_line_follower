@@ -16,7 +16,10 @@ AF_DCMotor motor2(2, MOTOR12_1KHZ);
 AF_DCMotor motor3(3, MOTOR34_1KHZ);
 AF_DCMotor motor4(4, MOTOR34_1KHZ);
 
-int distance = 0, leftIR, rightIR;
+int distance = 0;
+int leftDistance = 0;  // Declare left distance
+int rightDistance = 0;  // Declare right distance
+int leftIR, rightIR;
 int irThreshold = 500;  // Adjust based on your environment
 boolean object = false;
 
@@ -69,46 +72,16 @@ void objectAvoid() {
     delay(100);
     if (rightDistance <= leftDistance) {
       object = true;  // Set object to true for left turn
-      turn();  // Perform left turn
+      turn();
+      Serial.println("moveLeft");
     } else {
       object = false;  // Set object to false for right turn
-      turn();  // Perform right turn
+      turn();
+      Serial.println("moveRight");
     }
   } else {
     moveForward();
   }
-}
-
-// Avoidance with realignment
-void turn() {
-  if (object == false) {
-    Serial.println("Turning Right");
-    moveLeft();
-    delay(700);
-    moveForward();
-    delay(800);
-    moveRight();
-    delay(700);
-    realign();  // Try to realign after turning
-  } else {
-    Serial.println("Turning Left");
-    moveRight();
-    delay(700);
-    moveForward();
-    delay(800);
-    moveLeft();
-    delay(700);
-    realign();  // Try to realign after turning
-  }
-}
-
-void realign() {
-  // Keep moving forward until the IR sensors detect the line again
-  while (analogRead(irLeft) <= irThreshold && analogRead(irRight) <= irThreshold) {
-    moveForward();
-    delay(100);  // Small forward movement to realign
-  }
-  Serial.println("Back on track.");
 }
 
 int getDistance() {
@@ -155,6 +128,37 @@ void moveBackward() {
   motor2.run(BACKWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
+}
+
+void turn() {
+  if (object == false) {
+    Serial.println("Turning Right");
+    moveLeft();
+    delay(700);
+    moveForward();
+    delay(800);
+    moveRight();
+    delay(700);
+    realign();  // Try to realign after turning
+  } else {
+    Serial.println("Turning Left");
+    moveRight();
+    delay(700);
+    moveForward();
+    delay(800);
+    moveLeft();
+    delay(700);
+    realign();  // Try to realign after turning
+  }
+}
+
+void realign() {
+  // Keep moving forward until the IR sensors detect the line again
+  while (analogRead(irLeft) <= irThreshold && analogRead(irRight) <= irThreshold) {
+    moveForward();
+    delay(100);  // Small forward movement to realign
+  }
+  Serial.println("Back on track.");
 }
 
 void moveLeft() {
