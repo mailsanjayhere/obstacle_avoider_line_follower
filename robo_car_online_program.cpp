@@ -18,6 +18,7 @@ AF_DCMotor motor4(4, MOTOR34_1KHZ);
 
 int distance = 0, leftDistance, rightDistance, leftIR, rightIR;
 int irThreshold = 500;  // Adjust based on your environment
+boolean object = false;  // Declare the object variable to track obstacle avoidance direction
 
 void setup() {
   Serial.begin(9600);
