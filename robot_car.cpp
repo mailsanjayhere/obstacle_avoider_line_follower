@@ -94,6 +94,7 @@ void objectAvoid() {
       delay(800);
       moveRight();
       delay(900);
+      realign();  // Try to realign after turning
     } else {
       moveRight();  // Turn right to avoid obstacle
       delay(700);
@@ -101,6 +102,7 @@ void objectAvoid() {
       delay(800);
       moveLeft();
       delay(900);
+      realign();  // Try to realign after turning
     }
   } else {
     moveForward();  // No obstacle, keep moving forward
@@ -191,4 +193,12 @@ void moveLeft() {
   motor2.run(FORWARD);
   motor3.run(BACKWARD);
   motor4.run(BACKWARD);
+}
+void realign() {
+  // Keep moving forward until the IR sensors detect the line again
+  while (analogRead(irLeft) <= irThreshold && analogRead(irRight) <= irThreshold) {
+    moveForward();
+    delay(100);  // Small forward movement to realign
+  }
+  Serial.println("Back on track.");
 }
