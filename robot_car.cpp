@@ -89,8 +89,18 @@ void objectAvoid() {
 
     if (rightDistance <= leftDistance) {
       moveLeft();  // Turn left to avoid obstacle
+      delay(700);
+      moveForward();
+      delay(800);
+      moveRight();
+      delay(900);
     } else {
       moveRight();  // Turn right to avoid obstacle
+      delay(700);
+      moveForward();
+      delay(800);
+      moveLeft();
+      delay(900);
     }
   } else {
     moveForward();  // No obstacle, keep moving forward
