@@ -139,6 +139,8 @@ void turn() {
     delay(800);
     moveRight();
     delay(700);
+    moveRight();
+    delay(300);
     realign();  // Try to realign after turning
   } else {
     Serial.println("Turning Left");
