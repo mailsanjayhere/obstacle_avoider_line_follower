@@ -52,11 +52,11 @@ void loop() {
   } else if (leftIR > irThreshold && rightIR <= irThreshold) {
     objectAvoid();
     Serial.println("TL");
-    moveRight();  // Left detects black, turn left
+    turnRight();  // Left detects black, turn left
   } else if (leftIR <= irThreshold && rightIR > irThreshold) {
     objectAvoid();
     Serial.println("TR");
-    moveLeft();  // Right detects black, turn right
+    turnLeft();  // Right detects black, turn right
   } else {
     Stop();  // Both sensors off-track
   }
@@ -160,7 +160,34 @@ void realign() {
   }
   Serial.println("Back on track.");
 }
+// Continuous turning logic for sharp turns
+void turnLeft() {
+  // Start turning left
+  motor1.run(BACKWARD);
+  motor2.run(BACKWARD);
+  motor3.run(FORWARD);
+  motor4.run(FORWARD);
 
+  // Keep turning left until the right sensor detects black
+  while (analogRead(irRight) <= irThreshold) {
+    // Keep turning until the right IR detects the line again (black)
+  }
+  moveForward();  // Stabilize by moving forward after turning
+}
+
+void turnRight() {
+  // Start turning right
+  motor1.run(FORWARD);
+  motor2.run(FORWARD);
+  motor3.run(BACKWARD);
+  motor4.run(BACKWARD);
+
+  // Keep turning right until the left sensor detects black
+  while (analogRead(irLeft) <= irThreshold) {
+    // Keep turning until the left IR detects the line again (black)
+  }
+  moveForward();  // Stabilize by moving forward after turning
+}
 void moveRight() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
