@@ -16,9 +16,9 @@ AF_DCMotor motor2(2, MOTOR12_1KHZ);
 AF_DCMotor motor3(3, MOTOR34_1KHZ);
 AF_DCMotor motor4(4, MOTOR34_1KHZ);
 
-int distance = 0, leftDistance, rightDistance, leftIR, rightIR;
+int distance = 0, leftIR, rightIR;
 int irThreshold = 500;  // Adjust based on your environment
-boolean object = false;  // Declare the object variable to track obstacle avoidance direction
+boolean object = false;
 
 void setup() {
   Serial.begin(9600);
@@ -68,17 +68,47 @@ void objectAvoid() {
     lookRight();
     delay(100);
     if (rightDistance <= leftDistance) {
-      object = true;
-      turn();
-      Serial.println("moveLeft");
+      object = true;  // Set object to true for left turn
+      turn();  // Perform left turn
     } else {
-      object = false;
-      turn();
-      Serial.println("moveRight");
+      object = false;  // Set object to false for right turn
+      turn();  // Perform right turn
     }
   } else {
     moveForward();
   }
+}
+
+// Avoidance with realignment
+void turn() {
+  if (object == false) {
+    Serial.println("Turning Right");
+    moveLeft();
+    delay(700);
+    moveForward();
+    delay(800);
+    moveRight();
+    delay(700);
+    realign();  // Try to realign after turning
+  } else {
+    Serial.println("Turning Left");
+    moveRight();
+    delay(700);
+    moveForward();
+    delay(800);
+    moveLeft();
+    delay(700);
+    realign();  // Try to realign after turning
+  }
+}
+
+void realign() {
+  // Keep moving forward until the IR sensors detect the line again
+  while (analogRead(irLeft) <= irThreshold && analogRead(irRight) <= irThreshold) {
+    moveForward();
+    delay(100);  // Small forward movement to realign
+  }
+  Serial.println("Back on track.");
 }
 
 int getDistance() {
@@ -127,34 +157,14 @@ void moveBackward() {
   motor4.run(BACKWARD);
 }
 
-void turn() {
-  if (object == false) {
-    Serial.println("turn Right");
-    moveLeft();
-    delay(700);
-    moveForward();
-    delay(800);
-    moveRight();
-    delay(900);
-  } else {
-    Serial.println("turn left");
-    moveRight();
-    delay(700);
-    moveForward();
-    delay(800);
-    moveLeft();
-    delay(900);
-  }
-}
-
-void moveRight() {
+void moveLeft() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
 
-void moveLeft() {
+void moveRight() {
   motor1.run(FORWARD);
   motor2.run(FORWARD);
   motor3.run(BACKWARD);
