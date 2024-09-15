@@ -181,14 +181,14 @@ void turnRight() {
   }
   moveForward();  // Stabilize by moving forward after turning
 }
-void moveRight() {
+void moveLeft() {
   motor1.run(BACKWARD);
   motor2.run(BACKWARD);
   motor3.run(FORWARD);
   motor4.run(FORWARD);
 }
 
-void moveLeft() {
+void moveRight() {
   motor1.run(FORWARD);
   motor2.run(FORWARD);
   motor3.run(BACKWARD);
